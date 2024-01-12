@@ -1,0 +1,6 @@
+﻿Person ID,Gender,Age,Occupation,Sleep Duration,Quality of Sleep,Physical Activity Level,Stress Level,BMI Category,Blood Pressure,Heart Rate,Daily Steps,Sleep Disorder
+1,Male,24,Engineer Student,4,6.6,NA,2,Overweight,NA,77,3311,None
+2,Male,24,Engineer Student,4.8,5.5,NA,2,Overweight,NA,73,1173,None
+3,Male,24,Engineer Student,5.1,7.3,NA,2,Overweight,NA,79,10304,None
+4,Male,24,Engineer Student,6.6,7.6,NA,2,Overweight,NA,80,9579,None
+5,Male,24,Engineer Student,5.6,8.4,NA,2,Overweight,NA,77,2529,None
