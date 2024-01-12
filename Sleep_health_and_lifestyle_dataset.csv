@@ -1,6 +1,6 @@
 Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily Steps,Quality of Sleep
-1,Male,27,6.1,6,Overweight,77,4200,6
-2,Male,28,6.2,8,Normal,75,10000,6
+1,Male,28,6.2,8,Normal,75,10000,6
+2,Male,27,6.1,6,Overweight,77,4200,6
 3,Male,28,6.2,8,Normal,75,10000,6
 4,Male,28,5.9,8,Obese,85,3000,4
 5,Male,28,5.9,8,Obese,85,3000,4
