@@ -6,10 +6,15 @@ import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 from torchvision import datasets, models, transforms
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.feature_selection import SelectKBest, f_classif, RFE
 
 argParser = argparse.ArgumentParser()
 # training options
@@ -22,83 +27,70 @@ args = argParser.parse_args()
 lr = 1e-3
 
 
-def train(n_epochs, optimizer, loss_fn, training_set,
-          x_train, y_train, model_train, scheduler, device):
-    losses_train = []
-    print('training...')
-    for epoch in range(1, n_epochs+1):
-        model_train.train()
-        loss_train = 0.0
-        print('epochs ', epoch)
-        train_loader = torch.utils.data.DataLoader(training_set, batch_size=args.b, shuffle=True)
-        for batch, (imgs, coords) in enumerate(train_loader):
-
-            optimizer.zero_grad()
-
-            loss = loss_fn(outputs, coords)
-            loss.backward()
-            optimizer.step()
-            loss_train += loss.item()
-        losses_train += [loss_train / len(train_loader)]
-        print('Loss: ', losses_train[epoch - 1])
-        torch.save(model_train.state_dict(), args.s)
-
-        scheduler.step()
-    plt.figure(2, figsize=(12, 7))
-    plt.clf()
-    plt.plot(losses_train, label='train')
-    plt.xlabel('')
-    plt.ylabel('')
-    plt.legend(loc=1)
-    plt.show()
-
-    return model_train
-
-
-def test(x_test, y_test, model_test, device):
-
-    print('testing...')
-    test_loader = torch.utils.data.DataLoader(x_test, y_test, shuffle=True)
-    for batch, (imgs, coords) in enumerate(test_loader):
-        model_test.eval()
-        with torch.no_grad():
-            model_test.load_state_dict(torch.load(args.s))
-
-
 def main():
-    df = pd.read_csv('your_dataset.csv')
+    # pd.set_option('display.max_rows', None)
+    df = pd.read_csv('Sleep_health_and_lifestyle_dataset.csv')
+    gender_mapping = {'Male': 0, 'Female': 1}
+    bmi_mapping = {'Underweight': 0, 'Normal': 1, 'Overweight': 2, 'Obese': 3}
 
+    df['Gender'] = df['Gender'].map(gender_mapping)
+    df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
+    # print(df.dtypes)
+    x = df.iloc[:, 0: 8]
+    y = df.iloc[:, 8:9]
     # Data preprocessing
-    x = df[['Age', 'Occupation', 'Stress Level', 'BMI Category', 'Heart rate (bpm)',
-            'Daily Steps', 'Time in bed (seconds)', 'Time asleep (seconds)',
-            'Snore time']]  # Features
-    y = df['Sleep Quality']  # Target variable
+    '''x = df[['Age', 'Stress Level', 'BMI Category', 'Heart rate (bpm)',
+            'Daily Steps', 'Time asleep']]  # Features
+    y = df['Sleep Quality']  # Target variable'''
 
     # Split the dataset into training and testing sets
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
+    x_train = x_train.sort_values(by='Person ID')
+    x_test = x_test.sort_values(by='Person ID')
 
-    device = torch.device('cuda' if args.cuda == 'y' or args.cuda == 'Y' else 'cpu')
-    resnet = models.resnet18()
+    print('x_train: ', x_train)
+    print('y_train: ', y_train)
+    print('x_test: ', x_test)
+    print('y_test: ', y_test)
 
-    net = resnet.to(device)
-    loss_fn = nn.L1Loss()
-    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.e)
-    if args.m == 'train':
-        print('Training')
-        train(n_epochs=args.e, optimizer=optimizer,
-              loss_fn=loss_fn, x_train=x_train, y_train=y_train, model_train=net, scheduler=scheduler,
-              device=device)
-    else:
-        print('Testing')
-        test(x_test=x_test, y_test=y_test, model_test=net, device=device)
+    # Feature selection using SelectKBest
+    selector = SelectKBest(score_func=f_classif, k=6)
+    x_train_selected = selector.fit_transform(x_train, y_train)
+    x_test_selected = selector.transform(x_test)
 
-    # Train the model
-    trained_model = train(x_train, y_train)
+    # Logistic Regression Model
+    lr_model = LogisticRegression()
+    lr_model.fit(x_train_selected, y_train)
+    lr_accuracy = lr_model.score(x_test_selected, y_test)
 
-    # Make predictions on the test set
-    y_pred = trained_model.predict(x_test)
+    # Feature selection using Recursive Feature Elimination (RFE)
+    estimator = DecisionTreeClassifier()
+    rfe_selector = RFE(estimator, n_features_to_select=6)
+    x_train_selected_rfe = rfe_selector.fit_transform(x_train, y_train)
+    x_test_selected_rfe = rfe_selector.transform(x_test)
 
+    # Decision Tree Model
+    dt_model = DecisionTreeClassifier()
+    dt_model.fit(x_train_selected_rfe, y_train)
+    dt_accuracy = dt_model.score(x_test_selected_rfe, y_test)
+
+    # Random Forest Model
+    rf_model = RandomForestClassifier()
+    rf_model.fit(x_train_selected_rfe, y_train)
+    rf_accuracy = rf_model.score(x_test_selected_rfe, y_test)
+
+    # Support Vector Machines (SVM) Model
+    svm_model = SVC()
+    svm_model.fit(x_train_selected_rfe, y_train)
+    svm_accuracy = svm_model.score(x_test_selected_rfe, y_test)
+
+    # Displaying model accuracies
+    print("Logistic Regression Accuracy:", lr_accuracy)
+    print("Decision Tree Accuracy:", dt_accuracy)
+    print("Random Forest Accuracy:", rf_accuracy)
+    print("SVM Accuracy:", svm_accuracy)
+
+    '''
     # Evaluate the model
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
@@ -111,9 +103,8 @@ def main():
     plt.xlabel('Sleep Features')
     plt.ylabel('Sleep Quality')
     plt.legend()
-    plt.show()
+    plt.show()'''
 
 
 if __name__ == "__main__":
     main()
-
