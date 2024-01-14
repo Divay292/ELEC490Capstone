@@ -15,6 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.feature_selection import SelectKBest, f_classif, RFE
+from sklearn.preprocessing import StandardScaler
 
 argParser = argparse.ArgumentParser()
 # training options
@@ -48,20 +49,31 @@ def main():
     x_train = x_train.sort_values(by='Person ID')
     x_test = x_test.sort_values(by='Person ID')
 
-    print('x_train: ', x_train)
+    ''' print('x_train: ', x_train)
     print('y_train: ', y_train)
     print('x_test: ', x_test)
-    print('y_test: ', y_test)
+    print('y_test: ', y_test)'''
 
     # Feature selection using SelectKBest
     selector = SelectKBest(score_func=f_classif, k=6)
     x_train_selected = selector.fit_transform(x_train, y_train)
     x_test_selected = selector.transform(x_test)
 
+    scaler = StandardScaler()
+    x_train_selected_scaled = scaler.fit_transform(x_train_selected)
+    x_test_selected_scaled = scaler.transform(x_test_selected)
+
+    print('Before flattening - y_train shape:', y_train.shape)
+    print('Before flattening - y_test shape:', y_test.shape)
+    y_train = y_train.values.reshape(-1)
+    y_test = y_test.values.reshape(-1)
+    print('After flattening - y_train shape:', y_train.shape)
+    print('After flattening - y_test shape:', y_test.shape)
+
     # Logistic Regression Model
-    lr_model = LogisticRegression()
-    lr_model.fit(x_train_selected, y_train)
-    lr_accuracy = lr_model.score(x_test_selected, y_test)
+    lr_model = LogisticRegression(max_iter=1000)
+    lr_model.fit(x_train_selected_scaled, y_train)
+    lr_accuracy = lr_model.score(x_test_selected_scaled, y_test)
 
     # Feature selection using Recursive Feature Elimination (RFE)
     estimator = DecisionTreeClassifier()
