@@ -1,15 +1,23 @@
 # Import necessary libraries
 import numpy as np
-import torch
 import argparse
-import torch.nn as nn
-import torch.optim as optim
 import pandas as pd
-from torchvision import datasets, models, transforms
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, IsolationForest
+from sklearn.svm import SVC, SVR, OneClassSVM
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.ensemble import VotingClassifier, VotingRegressor, StackingClassifier, StackingRegressor
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from sklearn.naive_bayes import GaussianNB
+from sklearn.feature_selection import SelectKBest, f_classif, RFE
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
 
 argParser = argparse.ArgumentParser()
 # training options
@@ -22,98 +30,90 @@ args = argParser.parse_args()
 lr = 1e-3
 
 
-def train(n_epochs, optimizer, loss_fn, training_set,
-          x_train, y_train, model_train, scheduler, device):
-    losses_train = []
-    print('training...')
-    for epoch in range(1, n_epochs+1):
-        model_train.train()
-        loss_train = 0.0
-        print('epochs ', epoch)
-        train_loader = torch.utils.data.DataLoader(training_set, batch_size=args.b, shuffle=True)
-        for batch, (imgs, coords) in enumerate(train_loader):
-
-            optimizer.zero_grad()
-
-            loss = loss_fn(outputs, coords)
-            loss.backward()
-            optimizer.step()
-            loss_train += loss.item()
-        losses_train += [loss_train / len(train_loader)]
-        print('Loss: ', losses_train[epoch - 1])
-        torch.save(model_train.state_dict(), args.s)
-
-        scheduler.step()
-    plt.figure(2, figsize=(12, 7))
-    plt.clf()
-    plt.plot(losses_train, label='train')
-    plt.xlabel('')
-    plt.ylabel('')
-    plt.legend(loc=1)
-    plt.show()
-
-    return model_train
-
-
-def test(x_test, y_test, model_test, device):
-
-    print('testing...')
-    test_loader = torch.utils.data.DataLoader(x_test, y_test, shuffle=True)
-    for batch, (imgs, coords) in enumerate(test_loader):
-        model_test.eval()
-        with torch.no_grad():
-            model_test.load_state_dict(torch.load(args.s))
-
-
 def main():
-    df = pd.read_csv('your_dataset.csv')
+    # pd.set_option('display.max_rows', None)
+    df = pd.read_csv('Sleep_health_and_lifestyle_dataset.csv')
+    gender_mapping = {'Male': 0, 'Female': 1}
+    # bmi_mapping = {'Underweight': 0, 'Normal': 1, 'Overweight': 2, 'Obese': 3}
+
+    df['Gender'] = df['Gender'].map(gender_mapping)
+    df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
+    # print(df.dtypes)
 
     # Data preprocessing
-    x = df[['Age', 'Occupation', 'Stress Level', 'BMI Category', 'Heart rate (bpm)',
-            'Daily Steps', 'Time in bed (seconds)', 'Time asleep (seconds)',
-            'Snore time']]  # Features
-    y = df['Sleep Quality']  # Target variable
+    x = df.iloc[:, 0: 8]
+    y = df.iloc[:, 8:9]
 
     # Split the dataset into training and testing sets
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
+    x_train = x_train.sort_values(by='Person ID')
+    x_test = x_test.sort_values(by='Person ID')
 
-    device = torch.device('cuda' if args.cuda == 'y' or args.cuda == 'Y' else 'cpu')
-    resnet = models.resnet18()
+    # Feature selection using SelectKBest
+    selector = SelectKBest(score_func=f_classif, k=6)
+    x_train_selected = selector.fit_transform(x_train, y_train)
+    x_test_selected = selector.transform(x_test)
 
-    net = resnet.to(device)
-    loss_fn = nn.L1Loss()
-    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.e)
-    if args.m == 'train':
-        print('Training')
-        train(n_epochs=args.e, optimizer=optimizer,
-              loss_fn=loss_fn, x_train=x_train, y_train=y_train, model_train=net, scheduler=scheduler,
-              device=device)
-    else:
-        print('Testing')
-        test(x_test=x_test, y_test=y_test, model_test=net, device=device)
+    scaler = StandardScaler()
+    x_train_selected_scaled = scaler.fit_transform(x_train_selected)
+    x_test_selected_scaled = scaler.transform(x_test_selected)
 
-    # Train the model
-    trained_model = train(x_train, y_train)
+    y_train = y_train.values.reshape(-1)
+    y_test = y_test.values.reshape(-1)
 
-    # Make predictions on the test set
-    y_pred = trained_model.predict(x_test)
+    # Logistic Regression Model
+    lr_model = LogisticRegression(max_iter=1000, C=1.0)     # C is the regularization
+    lr_model.fit(x_train_selected_scaled, y_train)
+    lr_accuracy = lr_model.score(x_test_selected_scaled, y_test)
 
-    # Evaluate the model
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
+    # Feature selection using Recursive Feature Elimination (RFE)
+    estimator = DecisionTreeClassifier(max_depth=3, min_samples_split=2, min_samples_leaf=1, criterion='gini',
+                                       max_features=None)
+    rfe_selector = RFE(estimator, n_features_to_select=6)
+    x_train_selected_rfe = rfe_selector.fit_transform(x_train, y_train)
+    x_test_selected_rfe = rfe_selector.transform(x_test)
 
-    print(f'Mean Squared Error: {mse}')
-    print(f'R-squared: {r2}')
+    # Decision Tree Model
+    # min_samples_split and min_samples_leaf control structure of tree
+    dt_model = DecisionTreeClassifier(max_depth=3, min_samples_split=2, min_samples_leaf=1, criterion='gini',
+                                      max_features=None)
+    dt_model.fit(x_train_selected_rfe, y_train)
+    dt_accuracy = dt_model.score(x_test_selected_rfe, y_test)
 
-    plt.scatter(x_train, y_test, color='black', label='Actual')
-    plt.plot(x_test, y_pred, color='blue', linewidth=3, label='Predicted')
-    plt.xlabel('Sleep Features')
-    plt.ylabel('Sleep Quality')
-    plt.legend()
-    plt.show()
+    # Random Forest Model
+    rf_model = RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_split=2, min_samples_leaf=1,
+                                     criterion='gini', max_features='auto')
+    rf_model.fit(x_train_selected_rfe, y_train)
+    rf_accuracy = rf_model.score(x_test_selected_rfe, y_test)
+
+    # Support Vector Machines (SVM) Model
+    # C parameter controls the trade-off between having a smooth decision
+    # boundary and classifying the training points correctly
+    # Kernel parameter determines the type of kernel used (linear, poly, radial basis function(rbf), sigmoid)
+    svm_model = SVC(C=1.0, kernel='rbf', gamma='scale')
+    svm_model.fit(x_train_selected_rfe, y_train)
+    svm_accuracy = svm_model.score(x_test_selected_rfe, y_test)
+
+    # Displaying model accuracies
+    print("Logistic Regression Accuracy:", lr_accuracy)
+    print("Decision Tree Accuracy:", dt_accuracy)
+    print("Random Forest Accuracy:", rf_accuracy)
+    print("SVM Accuracy:", svm_accuracy)
+
+    '''# Define the parameter grid for Logistic Regression
+    param_grid_lr = {'C': [0.001, 0.01, 0.1, 1, 10, 100],
+                     'max_iter': [100, 500, 1000]}
+
+    # Create Logistic Regression model
+    lr_model = LogisticRegression()
+
+    # Perform GridSearchCV
+    grid_search_lr = GridSearchCV(lr_model, param_grid_lr, cv=5)
+    grid_search_lr.fit(x_train_selected_scaled, y_train)
+
+    # Print best hyperparameters
+    print("Best hyperparameters for Logistic Regression:", grid_search_lr.best_params_)'''
 
 
 if __name__ == "__main__":
     main()
-
