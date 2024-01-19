@@ -21,36 +21,35 @@ from sklearn.model_selection import GridSearchCV
 
 argParser = argparse.ArgumentParser()
 # training options
-argParser.add_argument('-e', type=int, help='Epochs')
-argParser.add_argument('-b', type=int, help='Batch Size')
 argParser.add_argument('-m', type=str, help='Mode')
 argParser.add_argument('-s', type=str, help='Weight File')
 argParser.add_argument('-cuda', metavar='cuda', type=str, help='[y/N]')
 args = argParser.parse_args()
-lr = 1e-3
 
 
 def main():
     # pd.set_option('display.max_rows', None)
     df = pd.read_csv('Sleep_health_and_lifestyle_dataset.csv')
-    #df2 = pd.read_csv('test.csv')
+    df2 = pd.read_csv('test.csv')
     gender_mapping = {'Male': 0, 'Female': 1}
     # bmi_mapping = {'Underweight': 0, 'Normal': 1, 'Overweight': 2, 'Obese': 3}
 
     df['Gender'] = df['Gender'].map(gender_mapping)
     df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
+    df['Quality of Sleep'] = df['Quality of Sleep']
 
+    df2['Gender'] = df2['Gender'].map(gender_mapping)
+    df2['BMI Category'] = pd.factorize(df2['BMI Category'])[0]
+    df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)
+
+    # print(df2)
     # print(df.dtypes)
 
     # Data preprocessing
-    x = df.iloc[:, 0: 8]
-    y = df.iloc[:, 8:9]
-
-
-    # Split the dataset into training and testing sets
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.05, random_state=42)
-    x_train = x_train.sort_values(by='Person ID')
-    x_test = x_test.sort_values(by='Person ID')
+    x_train = df.iloc[:, 1: 8]
+    y_train = df.iloc[:, 8:9]
+    x_test = df2.iloc[:, 1: 8]
+    y_test = df2.iloc[:, 8:9]
 
     y_train = y_train.values.reshape(-1)
     y_test = y_test.values.reshape(-1)
@@ -68,10 +67,10 @@ def main():
     param_grid_lr = {'C': [0.001, 0.01, 0.1, 1, 10, 100],
                      'max_iter': [100, 500, 1000]}
     # Logistic Regression Model
-    lr_model = LogisticRegression()     # C is the regularization
-    grid_search_lr = GridSearchCV(lr_model, param_grid_lr, cv=5)
-    grid_search_lr.fit(x_train_selected_scaled, y_train)
-    print("Best hyperparameters for Logistic Regression:", grid_search_lr.best_params_)
+    lr_model = LogisticRegression(C= 0.001, max_iter= 100)     # C is the regularization
+    '''grid_search_lr = GridSearchCV(lr_model, param_grid_lr, cv=5)
+    grid_search_lr.fit(x_train_selected_scaled, y_train)'''
+    # print("Best hyperparameters for Logistic Regression:", grid_search_lr.best_params_)
     lr_model.fit(x_train_selected_scaled, y_train)
     lr_accuracy_train = lr_model.score(x_train_selected_scaled, y_train)
     lr_accuracy_test = lr_model.score(x_test_selected_scaled, y_test)
@@ -89,10 +88,10 @@ def main():
                      'min_samples_leaf': [1, 2, 4]}
     # Decision Tree Model
     # min_samples_split and min_samples_leaf control structure of tree
-    dt_model = DecisionTreeClassifier()
-    grid_search_dt = GridSearchCV(dt_model, param_grid_dt, cv=5)
+    dt_model = DecisionTreeClassifier(max_depth= 3, min_samples_leaf= 4, min_samples_split= 10)
+    '''grid_search_dt = GridSearchCV(dt_model, param_grid_dt, cv=5)
     grid_search_dt.fit(x_train_selected_rfe, y_train)
-    print("Best hyperparameters for Decision Tree:", grid_search_dt.best_params_)
+    print("Best hyperparameters for Decision Tree:", grid_search_dt.best_params_)'''
 
     dt_model.fit(x_train_selected_rfe, y_train)
     dt_accuracy_train = dt_model.score(x_train_selected_rfe, y_train)
@@ -104,10 +103,10 @@ def main():
                      'min_samples_split': [2, 5, 10],
                      'min_samples_leaf': [1, 2, 4]}
     # Random Forest Model
-    rf_model = RandomForestClassifier()
-    grid_search_rf = GridSearchCV(rf_model, param_grid_rf, cv=5)
+    rf_model = RandomForestClassifier(max_depth= 10, min_samples_leaf= 4, min_samples_split= 10, n_estimators= 50)
+    '''grid_search_rf = GridSearchCV(rf_model, param_grid_rf, cv=5)
     grid_search_rf.fit(x_train_selected_rfe, y_train)
-    print("Best hyperparameters for Random Forest:", grid_search_rf.best_params_)
+    print("Best hyperparameters for Random Forest:", grid_search_rf.best_params_)'''
 
     rf_model.fit(x_train_selected_rfe, y_train)
     rf_accuracy_train = rf_model.score(x_train_selected_rfe, y_train)
@@ -121,9 +120,9 @@ def main():
     # boundary and classifying the training points correctly
     # Kernel parameter determines the type of kernel used (linear, poly, radial basis function(rbf), sigmoid)
     svm_model = SVC()
-    grid_search_svm = GridSearchCV(svm_model, param_grid_svm, cv=5)
+    '''grid_search_svm = GridSearchCV(svm_model, param_grid_svm, cv=5)
     grid_search_svm.fit(x_train_selected_rfe, y_train)
-    print("Best hyperparameters for SVM:", grid_search_svm.best_params_)
+    print("Best hyperparameters for SVM:", grid_search_svm.best_params_)'''
 
     svm_model.fit(x_train_selected_rfe, y_train)
     svm_accuracy_train = svm_model.score(x_train_selected_rfe, y_train)
