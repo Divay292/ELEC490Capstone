@@ -18,6 +18,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.feature_selection import SelectKBest, f_classif, RFE
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
+import joblib
 
 argParser = argparse.ArgumentParser()
 # training options
@@ -25,6 +26,10 @@ argParser.add_argument('-m', type=str, help='Mode')
 argParser.add_argument('-s', type=str, help='Weight File')
 argParser.add_argument('-cuda', metavar='cuda', type=str, help='[y/N]')
 args = argParser.parse_args()
+
+
+def save_weights(model, filename):
+    joblib.dump(model, filename)
 
 
 def main():
@@ -74,6 +79,8 @@ def main():
     lr_model.fit(x_train_selected_scaled, y_train)
     lr_accuracy_train = lr_model.score(x_train_selected_scaled, y_train)
     lr_accuracy_test = lr_model.score(x_test_selected_scaled, y_test)
+    # Save LR model weight
+    #save_weights(lr_model, 'lr_model_weights.pth')
 
     # Feature selection using Recursive Feature Elimination (RFE)
     estimator = DecisionTreeClassifier(max_depth=3, min_samples_split=2, min_samples_leaf=1, criterion='gini',
@@ -88,7 +95,7 @@ def main():
                      'min_samples_leaf': [1, 2, 4]}
     # Decision Tree Model
     # min_samples_split and min_samples_leaf control structure of tree
-    dt_model = DecisionTreeClassifier(max_depth= 3, min_samples_leaf= 4, min_samples_split= 10)
+    dt_model = DecisionTreeClassifier(max_depth=3, min_samples_leaf=4, min_samples_split=10)
     '''grid_search_dt = GridSearchCV(dt_model, param_grid_dt, cv=5)
     grid_search_dt.fit(x_train_selected_rfe, y_train)
     print("Best hyperparameters for Decision Tree:", grid_search_dt.best_params_)'''
@@ -96,6 +103,8 @@ def main():
     dt_model.fit(x_train_selected_rfe, y_train)
     dt_accuracy_train = dt_model.score(x_train_selected_rfe, y_train)
     dt_accuracy_test = dt_model.score(x_test_selected_rfe, y_test)
+    #  Save DT model
+    save_weights(dt_model, 'dt_model_weights.pth')
 
     # Define the parameter grid for Random Forest
     param_grid_rf = {'n_estimators': [0, 100, 200],
@@ -103,7 +112,7 @@ def main():
                      'min_samples_split': [2, 5, 10],
                      'min_samples_leaf': [1, 2, 4]}
     # Random Forest Model
-    rf_model = RandomForestClassifier(max_depth= 10, min_samples_leaf= 4, min_samples_split= 10, n_estimators= 50)
+    rf_model = RandomForestClassifier(max_depth=10, min_samples_leaf=4, min_samples_split=10, n_estimators=50)
     '''grid_search_rf = GridSearchCV(rf_model, param_grid_rf, cv=5)
     grid_search_rf.fit(x_train_selected_rfe, y_train)
     print("Best hyperparameters for Random Forest:", grid_search_rf.best_params_)'''
@@ -111,6 +120,8 @@ def main():
     rf_model.fit(x_train_selected_rfe, y_train)
     rf_accuracy_train = rf_model.score(x_train_selected_rfe, y_train)
     rf_accuracy_test = rf_model.score(x_test_selected_rfe, y_test)
+    # Save RF model
+    save_weights(rf_model, 'rf_model_weights.pth')
 
     param_grid_svm = {'C': [0.1, 1, 10],
                       'kernel': ['linear', 'rbf', 'poly'],
@@ -141,6 +152,15 @@ def main():
     print("SVM Training Accuracy:", svm_accuracy_train)
     print("SVM Test Accuracy:", svm_accuracy_test)
 
+    '''if lr_accuracy_test < 0.8 or dt_accuracy_test < 0.8 or rf_accuracy_test < 0.8 or svm_accuracy_test < 0.8:
+        # Transfer the first line of test.csv to Sleep_health_and_lifestyle_dataset.csv
+        first_line_test = df2.iloc[0:1, :]
+        df = pd.concat([df, first_line_test], ignore_index=True)
+
+        # Delete the first line from test.csv
+        df2 = df2.drop(0)'''
+
 
 if __name__ == "__main__":
     main()
+
