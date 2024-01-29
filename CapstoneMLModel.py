@@ -158,7 +158,12 @@ def main():
         df = pd.concat([df, first_line_test], ignore_index=True)
 
         # Delete the first line from test.csv
-        df2 = df2.drop(0)'''
+        df2 = df2.drop(0)
+
+        df.to_csv('Sleep_health_and_lifestyle_dataset_modified.csv', index=False)
+        df.to_csv('Sleep_health_and_lifestyle_dataset.csv', index=False)
+        df2.to_csv('test.csv', index=False)
+        df2.to_csv('test_modified.csv', index=False)'''
 
 
 if __name__ == "__main__":
