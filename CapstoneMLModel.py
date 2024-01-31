@@ -39,13 +39,13 @@ def main():
     gender_mapping = {'Male': 0, 'Female': 1}
     # bmi_mapping = {'Underweight': 0, 'Normal': 1, 'Overweight': 2, 'Obese': 3}
 
-    df['Gender'] = df['Gender'].map(gender_mapping)
+    '''df['Gender'] = df['Gender'].map(gender_mapping)
     df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
     df['Quality of Sleep'] = df['Quality of Sleep']
 
     df2['Gender'] = df2['Gender'].map(gender_mapping)
     df2['BMI Category'] = pd.factorize(df2['BMI Category'])[0]
-    df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)
+    df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)'''
 
     # print(df2)
     # print(df.dtypes)
@@ -56,8 +56,12 @@ def main():
     x_test = df2.iloc[:, 1: 8]
     y_test = df2.iloc[:, 8:9]
 
+    # Split the dataset into training and testing sets
+    # x_train, x_test, y_train, y_test = train_test_split(x_train, y_train, test_size=0.1, random_state=42)
+
     y_train = y_train.values.reshape(-1)
     y_test = y_test.values.reshape(-1)
+
 
     # Feature selection using SelectKBest
     selector = SelectKBest(score_func=f_classif, k=6)
