@@ -23,13 +23,15 @@ import joblib
 def load_data():
     df = pd.read_csv('Sleep_health_and_lifestyle_dataset.csv')
     df2 = pd.read_csv('test.csv')
-    '''gender_mapping = {'Male': 0, 'Female': 1}
+    gender_mapping = {'Male': 0, 'Female': 1}
     df['Gender'] = df['Gender'].map(gender_mapping)
     df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
     df['Quality of Sleep'] = df['Quality of Sleep']
-    df2['Gender'] = df2['Gender'].map(gender_mapping)
+    df['Sleep Duration'] = df['Sleep Duration'].astype(int)
+    '''df2['Gender'] = df2['Gender'].map(gender_mapping)
     df2['BMI Category'] = pd.factorize(df2['BMI Category'])[0]
-    df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)'''
+    df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)
+    df2['Sleep Duration'] = df['Sleep Duration'].astype(int)'''
     return df, df2
 
 
