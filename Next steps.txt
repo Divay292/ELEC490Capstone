@@ -1,0 +1,11 @@
+Next steps
+Section to save training model (create train and test mode) then add user data to train data to improve the model 
+Provides feedback to user based on how to improve their sleep score(i.e. which features were most effected by changes in sleep score)
+
+User gives actual sleep acuracy back each day and show the error rate between the prediction and actual accuracy
+
+
+
+Best hyperparameters for Logistic Regression: {'C': 0.001, 'max_iter': 100}
+Best hyperparameters for Decision Tree: {'max_depth': 3, 'min_samples_leaf': 4, 'min_samples_split': 10}
+Best hyperparameters for Random Forest: {'max_depth': 10, 'min_samples_leaf': 4, 'min_samples_split': 10, 'n_estimators': 50}

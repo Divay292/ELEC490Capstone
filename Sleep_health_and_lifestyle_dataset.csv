@@ -1,6 +1,6 @@
 Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily Steps,Quality of Sleep
-1,Male,28,6.2,8,Normal,75,10000,6
-2,Male,27,6.1,6,Overweight,77,4200,6
+1,Male,27,6.1,6,Overweight,77,4200,6
+2,Male,28,6.2,8,Normal,75,10000,6
 3,Male,28,6.2,8,Normal,75,10000,6
 4,Male,28,5.9,8,Obese,85,3000,4
 5,Male,28,5.9,8,Obese,85,3000,4
@@ -15,9 +15,9 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 14,Male,29,6,8,Normal,70,8000,6
 15,Male,29,6,8,Normal,70,8000,6
 16,Male,29,6,8,Normal,70,8000,6
-17,Female,29,6.5,7,Normal,80,4000,5
+17,Female,29,6.5,7,Normal Weight,80,4000,5
 18,Male,29,6,8,Normal,70,8000,6
-19,Female,29,6.5,7,Normal,80,4000,5
+19,Female,29,6.5,7,Normal Weight,80,4000,5
 20,Male,30,7.6,6,Normal,70,8000,7
 21,Male,30,7.7,6,Normal,70,8000,7
 22,Male,30,7.7,6,Normal,70,8000,7
@@ -29,9 +29,9 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 28,Male,30,7.9,6,Normal,70,8000,7
 29,Male,30,7.9,6,Normal,70,8000,7
 30,Male,30,7.9,6,Normal,70,8000,7
-31,Female,30,6.4,7,Normal,78,4100,5
-32,Female,30,6.4,7,Normal,78,4100,5
-33,Female,31,7.9,4,Normal,69,6800,8
+31,Female,30,6.4,7,Normal Weight,78,4100,5
+32,Female,30,6.4,7,Normal Weight,78,4100,5
+33,Female,31,7.9,4,Normal Weight,69,6800,8
 34,Male,31,6.1,8,Normal,72,5000,6
 35,Male,31,7.7,6,Normal,70,8000,7
 36,Male,31,6.1,8,Normal,72,5000,6
@@ -65,7 +65,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 64,Male,32,6.2,8,Normal,72,5000,6
 65,Male,32,6.2,8,Normal,72,5000,6
 66,Male,32,6.2,8,Normal,72,5000,6
-67,Male,32,7.2,6,Normal,68,7000,8
+67,Male,32,7.2,6,Normal Weight,68,7000,8
 68,Male,33,6,8,Normal,72,5000,6
 69,Female,33,6.2,6,Overweight,76,5500,6
 70,Female,33,6.2,6,Overweight,76,5500,6
@@ -83,7 +83,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 82,Female,34,5.8,8,Overweight,81,5200,4
 83,Male,35,6.7,5,Overweight,70,5600,7
 84,Male,35,6.7,5,Overweight,70,5600,7
-85,Male,35,7.5,5,Normal,70,8000,8
+85,Male,35,7.5,5,Normal Weight,70,8000,8
 86,Female,35,7.2,4,Normal,68,7000,8
 87,Male,35,7.2,4,Normal,65,5000,8
 88,Male,35,7.2,4,Normal,65,5000,8
@@ -91,7 +91,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 90,Male,35,7.3,4,Normal,65,5000,8
 91,Male,35,7.3,4,Normal,65,5000,8
 92,Male,35,7.3,4,Normal,65,5000,8
-93,Male,35,7.5,5,Normal,70,8000,8
+93,Male,35,7.5,5,Normal Weight,70,8000,8
 94,Male,35,7.4,5,Obese,84,3300,7
 95,Female,36,7.2,4,Normal,68,7000,8
 96,Female,36,7.1,4,Normal,68,7000,8
@@ -106,8 +106,8 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 105,Female,36,7.2,4,Normal,68,7000,8
 106,Male,36,6.6,7,Overweight,74,4800,5
 107,Female,37,6.1,6,Overweight,77,4200,6
-108,Male,37,7.8,4,Normal,68,7000,8
-109,Male,37,7.8,4,Normal,68,7000,8
+108,Male,37,7.8,4,Normal Weight,68,7000,8
+109,Male,37,7.8,4,Normal Weight,68,7000,8
 110,Male,37,7.4,5,Normal,68,8000,8
 111,Female,37,7.2,4,Normal,68,7000,8
 112,Male,37,7.4,5,Normal,68,8000,8
@@ -124,7 +124,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 123,Female,37,7.2,4,Normal,68,7000,8
 124,Female,37,7.2,4,Normal,68,7000,8
 125,Female,37,7.2,4,Normal,68,7000,8
-126,Female,37,7.5,4,Normal,70,8000,8
+126,Female,37,7.5,4,Normal Weight,70,8000,8
 127,Male,38,7.3,5,Normal,68,8000,8
 128,Female,38,7.1,4,Normal,68,7000,8
 129,Male,38,7.3,5,Normal,68,8000,8
@@ -147,9 +147,9 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 146,Female,38,7.4,5,Obese,84,3300,7
 147,Male,39,7.2,5,Normal,68,8000,8
 148,Male,39,6.5,7,Overweight,80,4000,5
-149,Female,39,6.9,6,Normal,75,5500,7
-150,Female,39,8,3,Normal,67,7500,9
-151,Female,39,8,3,Normal,67,7500,9
+149,Female,39,6.9,6,Normal Weight,75,5500,7
+150,Female,39,8,3,Normal Weight,67,7500,9
+151,Female,39,8,3,Normal Weight,67,7500,9
 152,Male,39,7.2,5,Normal,68,8000,8
 153,Male,39,7.2,5,Normal,68,8000,8
 154,Male,39,7.2,5,Normal,68,8000,8
@@ -160,12 +160,12 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 159,Male,39,7.2,5,Normal,68,8000,8
 160,Male,39,7.2,5,Normal,68,8000,8
 161,Male,39,7.2,5,Normal,68,8000,8
-162,Female,40,7.2,6,Normal,73,7300,8
-163,Female,40,7.2,6,Normal,73,7300,8
+162,Female,40,7.2,6,Normal Weight,73,7300,8
+163,Female,40,7.2,6,Normal Weight,73,7300,8
 164,Male,40,7.9,5,Normal,68,8000,8
 165,Male,40,7.9,5,Normal,68,8000,8
 166,Male,41,7.6,5,Normal,70,8000,8
-167,Male,41,7.3,6,Normal,72,6200,8
+167,Male,41,7.3,6,Normal Weight,72,6200,8
 168,Male,41,7.1,6,Overweight,72,6000,7
 169,Male,41,7.1,6,Overweight,72,6000,7
 170,Male,41,7.7,5,Normal,70,8000,8
@@ -202,7 +202,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 201,Male,43,6.5,7,Overweight,72,6000,6
 202,Male,43,7.8,5,Normal,70,8000,8
 203,Male,43,7.8,5,Normal,70,8000,8
-204,Male,43,6.9,7,Normal,69,6800,6
+204,Male,43,6.9,7,Normal Weight,69,6800,6
 205,Male,43,7.6,4,Overweight,68,6800,8
 206,Male,43,7.7,5,Normal,70,8000,8
 207,Male,43,7.7,5,Normal,70,8000,8
@@ -301,7 +301,7 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 300,Female,51,8.5,3,Normal,65,5000,9
 301,Female,51,8.5,3,Normal,65,5000,9
 302,Female,51,8.5,3,Normal,65,5000,9
-303,Female,51,7.1,6,Normal,72,6000,7
+303,Female,51,7.1,6,Normal Weight,72,6000,7
 304,Female,51,6,8,Overweight,75,10000,6
 305,Female,51,6.1,8,Overweight,75,10000,6
 306,Female,51,6.1,8,Overweight,75,10000,6
@@ -340,8 +340,8 @@ Person ID,Gender,Age,Sleep Duration,Stress Level,BMI Category,Heart Rate,Daily S
 339,Female,54,8.5,3,Normal,65,5000,9
 340,Female,55,8.1,4,Overweight,72,5000,9
 341,Female,55,8.1,4,Overweight,72,5000,9
-342,Female,56,8.2,3,Normal,65,10000,9
-343,Female,56,8.2,3,Normal,65,10000,9
+342,Female,56,8.2,3,Normal Weight,65,10000,9
+343,Female,56,8.2,3,Normal Weight,65,10000,9
 344,Female,57,8.1,3,Overweight,68,7000,9
 345,Female,57,8.2,3,Overweight,68,7000,9
 346,Female,57,8.2,3,Overweight,68,7000,9
