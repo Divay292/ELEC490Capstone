@@ -2,14 +2,13 @@ import numpy as np
 import argparse
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, IsolationForest
-from sklearn.svm import SVC, SVR, OneClassSVM
-from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.ensemble import VotingClassifier, VotingRegressor, StackingClassifier, StackingRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, IsolationForest
+from sklearn.svm import SVR, OneClassSVM
+from sklearn.neural_network import MLPRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import VotingRegressor, StackingRegressor
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
@@ -18,16 +17,17 @@ from sklearn.feature_selection import SelectKBest, f_classif, RFE
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 import joblib
+import random
 
 
 def load_data():
-    df = pd.read_csv('Sleep_health_and_lifestyle_dataset.csv')
-    df2 = pd.read_csv('test.csv')
-    gender_mapping = {'Male': 0, 'Female': 1}
+    df = pd.read_csv('Sleep_health_and_lifestyle_dataset_modified.csv')
+    df2 = pd.read_csv('Test_modified.csv')
+    '''gender_mapping = {'Male': 0, 'Female': 1}
     df['Gender'] = df['Gender'].map(gender_mapping)
     df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
-    df['Quality of Sleep'] = df['Quality of Sleep']
-    df['Sleep Duration'] = df['Sleep Duration'].astype(int)
+    df['Quality of Sleep'] = df['Quality of Sleep'].astype(int)
+    df['Sleep Duration'] = df['Sleep Duration'].astype(int)'''
     '''df2['Gender'] = df2['Gender'].map(gender_mapping)
     df2['BMI Category'] = pd.factorize(df2['BMI Category'])[0]
     df2['Quality of Sleep'] = df2['Quality of Sleep'].astype(int)
@@ -70,8 +70,8 @@ def modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_t
     return df, df2
 
 
-def train_logistic_regression(x_train, y_train, x_test, y_test):
-    lr_model = LogisticRegression(C=0.001, max_iter=100)
+def train_linear_regression(x_train, y_train, x_test, y_test):
+    lr_model = LinearRegression()
     lr_model.fit(x_train, y_train)
     # save_weights(lr_model, 'lr_model_weights.pth')
     lr_accuracy_train = lr_model.score(x_train, y_train)
@@ -80,7 +80,7 @@ def train_logistic_regression(x_train, y_train, x_test, y_test):
 
 
 def train_decision_tree(x_train, y_train, x_test, y_test):
-    dt_model = DecisionTreeClassifier(max_depth=3, min_samples_leaf=4, min_samples_split=10)
+    dt_model = DecisionTreeRegressor(max_depth=3, min_samples_leaf=4, min_samples_split=10)
     dt_model.fit(x_train, y_train)
     # save_weights(dt_model, 'dt_model_weights.pth')
     dt_accuracy_train = dt_model.score(x_train, y_train)
@@ -89,7 +89,7 @@ def train_decision_tree(x_train, y_train, x_test, y_test):
 
 
 def train_random_forest(x_train, y_train, x_test, y_test):
-    rf_model = RandomForestClassifier(max_depth=10, min_samples_leaf=4, min_samples_split=10, n_estimators=50)
+    rf_model = RandomForestRegressor(max_depth=10, min_samples_leaf=4, min_samples_split=10, n_estimators=50)
     rf_model.fit(x_train, y_train)
     # save_weights(rf_model, 'rf_model_weights.pth')
     rf_accuracy_train = rf_model.score(x_train, y_train)
@@ -97,8 +97,8 @@ def train_random_forest(x_train, y_train, x_test, y_test):
     return rf_accuracy_train, rf_accuracy_test
 
 
-def train_svm(x_train, y_train, x_test, y_test):
-    svm_model = SVC()
+def train_svr(x_train, y_train, x_test, y_test):
+    svm_model = SVR()
     svm_model.fit(x_train, y_train)
     # save_weights(svm_model, 'svm_model_weights.pth')
     svm_accuracy_train = svm_model.score(x_train, y_train)
@@ -106,12 +106,12 @@ def train_svm(x_train, y_train, x_test, y_test):
     return svm_accuracy_train, svm_accuracy_test
 
 
-def train_mlp_classifier(x_train, y_train, x_test, y_test):
+'''def train_mlp_classifier(x_train, y_train, x_test, y_test):
     mlp_model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=1000)
     mlp_model.fit(x_train, y_train)
     mlp_accuracy_train = mlp_model.score(x_train, y_train)
     mlp_accuracy_test = mlp_model.score(x_test, y_test)
-    return mlp_accuracy_train, mlp_accuracy_test
+    return mlp_accuracy_train, mlp_accuracy_test'''
 
 
 def train_mlp_regressor(x_train, y_train, x_test, y_test):
@@ -126,25 +126,22 @@ def main():
     df, df2 = load_data()
     x_train, y_train, x_test, y_test = preprocess_data(df, df2)
 
-    lr_accuracy_train, lr_accuracy_test = train_logistic_regression(x_train, y_train, x_test, y_test)
+    lr_accuracy_train, lr_accuracy_test = train_linear_regression(x_train, y_train, x_test, y_test)
     dt_accuracy_train, dt_accuracy_test = train_decision_tree(x_train, y_train, x_test, y_test)
     rf_accuracy_train, rf_accuracy_test = train_random_forest(x_train, y_train, x_test, y_test)
-    svm_accuracy_train, svm_accuracy_test = train_svm(x_train, y_train, x_test, y_test)
-    mlp_accuracy_train, mlp_accuracy_test = train_mlp_classifier(x_train, y_train, x_test, y_test)
+    svm_accuracy_train, svm_accuracy_test = train_svr(x_train, y_train, x_test, y_test)
     mlp_regressor_score_train, mlp_regressor_score_test = train_mlp_regressor(x_train, y_train, x_test, y_test)
 
-    print("Logistic Regression Training Accuracy:", lr_accuracy_train)
-    print("Logistic Regression Test Accuracy:", lr_accuracy_test)
-    print("Decision Tree Training Accuracy:", dt_accuracy_train)
-    print("Decision Tree Test Accuracy:", dt_accuracy_test)
-    print("Random Forest Training Accuracy:", rf_accuracy_train)
-    print("Random Forest Test Accuracy:", rf_accuracy_test)
-    print("SVM Training Accuracy:", svm_accuracy_train)
-    print("SVM Test Accuracy:", svm_accuracy_test)
-    print("MLP Classifier Training Accuracy:", mlp_accuracy_train)
-    print("MLP Classifier Test Accuracy:", mlp_accuracy_test)
-    print("MLP Regressor Training Score:", mlp_regressor_score_train)
-    print("MLP Regressor Test Score:", mlp_regressor_score_test)
+    print("Linear Regression Training Accuracy: {:.4f}".format(lr_accuracy_train))
+    print("Linear Regression Test Accuracy: {:.4f}".format(lr_accuracy_test))
+    print("Decision Tree Training Accuracy: {:.4f}".format(dt_accuracy_train))
+    print("Decision Tree Test Accuracy: {:.4f}".format(dt_accuracy_test))
+    print("Random Forest Training Accuracy: {:.4f}".format(rf_accuracy_train))
+    print("Random Forest Test Accuracy: {:.4f}".format(rf_accuracy_test))
+    print("SVM Training Accuracy: {:.4f}".format(svm_accuracy_train))
+    print("SVM Test Accuracy: {:.4f}".format(svm_accuracy_test))
+    print("MLP Regressor Training Score: {:.4f}".format(mlp_regressor_score_train))
+    print("MLP Regressor Test Score: {:.4f}".format(mlp_regressor_score_test))
 
     '''df, df2 = modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_test, svm_accuracy_test)
     df.to_csv('Sleep_health_and_lifestyle_dataset.csv', index=False)
