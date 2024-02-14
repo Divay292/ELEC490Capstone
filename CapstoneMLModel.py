@@ -17,14 +17,13 @@ from sklearn.feature_selection import SelectKBest, f_classif, RFE
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 import joblib
-import random
 
 
 def load_data():
-    df = pd.read_csv('Sleep_health_and_lifestyle_dataset_modified.csv')
-    df2 = pd.read_csv('Test_modified.csv')
+    df = pd.read_csv('ML_Model_Sleep_Data_modified.csv')
+    df2 = pd.read_csv('ML_Model_Test_Data.csv')
     '''gender_mapping = {'Male': 0, 'Female': 1}
-    df['Gender'] = df['Gender'].map(gender_mapping)
+    # df['Gender'] = df['Gender'].map(gender_mapping)
     df['BMI Category'] = pd.factorize(df['BMI Category'])[0]
     df['Quality of Sleep'] = df['Quality of Sleep'].astype(int)
     df['Sleep Duration'] = df['Sleep Duration'].astype(int)'''
@@ -36,10 +35,10 @@ def load_data():
 
 
 def preprocess_data(df, df2):
-    x_train = df.iloc[:, 1:8]
-    y_train = df.iloc[:, 8:9]
-    x_test = df2.iloc[:, 1:8]
-    y_test = df2.iloc[:, 8:9]
+    x_train = df.iloc[:, 5:12]
+    y_train = df.iloc[:, 12:13]
+    x_test = df2.iloc[:, 5:12]
+    y_test = df2.iloc[:, 12:13]
     y_train = y_train.values.reshape(-1)
     y_test = y_test.values.reshape(-1)
     selector = SelectKBest(score_func=f_classif, k=6)
@@ -146,6 +145,7 @@ def main():
     '''df, df2 = modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_test, svm_accuracy_test)
     df.to_csv('Sleep_health_and_lifestyle_dataset.csv', index=False)
     df2.to_csv('test.csv', index=False)'''
+
 
 
 if __name__ == "__main__":
