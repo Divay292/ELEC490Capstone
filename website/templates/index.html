@@ -1,34 +1,47 @@
-{% block body %}
-<div class="content">
-    <h1 style="text-align: center">Task Master</h1>
-    {% if tasks|length < 1 %}
-    <h4 style="text-align: center">There are no tasks. Create one below!</h4>
-    {% else %}
-    <table>
-        <tr>
-            <th>Task</th>
-            <th>Added</th>
-            <th>Actions</th>
-        </tr>
-        {% for task in tasks %}
-            <tr>
-                <td>{{ task.content }}</td>
-                <td>{{ task.date_created.date() }}</td>
-                <td>
-                    <a href="/delete/{{task.id}}">Delete</a>
-                    <br>
-                    <a href="/update/{{task.id}}">Update</a>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-    {% endif %}
+<!DOCTYPE html>
+<html lang="en">
 
-    <div class="form">
-        <form action="/" method="POST">
-            <input type="text" name="content" id="content">
-            <input type="submit" value="Add Task">
-        </form>
-    </div>
+<style>
+    .header{
+        text-align: center;
+        font-family: system-ui;
+
+        opacity: 0.8;
+        padding: 5px;
+    }
+
+    .body{
+        background: #7fa580;
+        opacity: 0.8;
+        width: 50%;
+        text-align: center;
+        margin-left: 450px;
+        margin-top: 100px;
+        padding: 15px;
+        font-family: system-ui;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <title>ELEC 390 Capstone</title>
+</head>
+
+<!Background Colour>
+<body style="background-color:#c6c9c7"></body>
+
+<div class="header">
+    <h1>ELEC 390: Sleep Monitoring System </h1>
 </div>
-{% endblock %}
+
+<div class="body">
+    <img src="\static\src\System_Model.jpeg" alt="System Diagram" width="900" height="auto">
+    <br>
+    <label for="Age"></label><input type="text" id="Age" name="Age" placeholder="Age">
+    <label for="Occupation"></label><input type="text" id="Occupation" name="Occupation" placeholder="Occupation">
+    <label for="Stress Level"></label><input type="text" id="Stress Level" name="Stress" placeholder="Stress Level">
+    <label for="BMI Category"></label><input type="text" id="BMI Category" name="BMI" placeholder="BMI Category">
+    <button type="button" id="Enter" name="Enter">Enter</button>
+</div>
+
+</html>
