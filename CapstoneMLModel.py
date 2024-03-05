@@ -24,6 +24,7 @@ import joblib
 
 epochs = 200
 
+
 def load_data():
     df = pd.read_csv('ML_Model_Sleep_Data_modified.csv')
     df2 = pd.read_csv('ML_Model_Test_Data.csv')
@@ -90,37 +91,83 @@ def train_linear_regression(x_train, y_train, x_test, y_test):
     lr_predictions_test = lr_model.predict(x_test)
     lr_accuracy_train = lr_model.score(x_train, y_train)
     lr_accuracy_test = lr_model.score(x_test, y_test)
-    
-
     return lr_accuracy_train, lr_accuracy_test, lr_predictions_test
 
-def train_decision_tree(x_train, y_train, x_test, y_test):
-    dt_model = DecisionTreeRegressor(max_depth=3, min_samples_leaf=4, min_samples_split=10)
+
+def train_decision_tree(x_train, y_train, x_test, y_test, max_depth=8, min_samples_leaf=4,
+                        min_samples_split=5):
+    dt_model = DecisionTreeRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
+                                     min_samples_split=min_samples_split)
     dt_model.fit(x_train, y_train)
-    dt_loss_history = []
-    
-    loss_function = mean_squared_error
-    initial_loss = loss_function(dt_model.predict(x_train), y_train)
-    print("Initial Loss:", initial_loss)
-    
-    for epoch in range(epochs):  # Iterate over epochs
+
+    # Compute training and validation loss for each level of tree growth
+    training_mse = []
+    validation_mse = []
+    for depth in range(1, max_depth + 1):
+        dt_model = DecisionTreeRegressor(max_depth=depth, min_samples_leaf=min_samples_leaf,
+                                         min_samples_split=min_samples_split)
         dt_model.fit(x_train, y_train)
-        loss = loss_function(dt_model.predict(x_train), y_train)
-        dt_loss_history.append(loss)
-        # print(f"Epoch {epoch + 1}, Loss: {loss}")
-    dt_predictions_train = dt_model.predict(x_train)
-    dt_predictions_test = dt_model.predict(x_test)
+        y_train_pred = dt_model.predict(x_train)
+        y_test_pred = dt_model.predict(x_test)
+        training_loss = mean_squared_error(y_train, y_train_pred)
+        validation_loss = mean_squared_error(y_test, y_test_pred)
+        training_mse.append(training_loss)
+        validation_mse.append(validation_loss)
+
+    # Plot the loss
+    plt.figure(figsize=(10, 8))
+    plt.plot(training_mse, label="train")
+    plt.plot(validation_mse, label="validation")
+    plt.title('Decision Tree Loss Plot')
+    plt.xlabel('Tree Depth')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+    # Compute accuracy and predictions
     dt_accuracy_train = dt_model.score(x_train, y_train)
     dt_accuracy_test = dt_model.score(x_test, y_test)
-    return dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test
+    dt_predictions_train = dt_model.predict(x_train)
+    dt_predictions_test = dt_model.predict(x_test)
 
-def train_random_forest(x_train, y_train, x_test, y_test):
-    rf_model = RandomForestRegressor(max_depth=10, min_samples_leaf=4, min_samples_split=10, n_estimators=50)
+    return dt_accuracy_train, dt_accuracy_test, dt_predictions_train, dt_predictions_test
+
+
+def train_random_forest(x_train, y_train, x_test, y_test, max_depth=20, min_samples_leaf=20,
+                        min_samples_split=20, n_estimators=100):
+    rf_model = RandomForestRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
+                                     min_samples_split=min_samples_split, n_estimators=n_estimators)
     rf_model.fit(x_train, y_train)
-    rf_predictions_train = rf_model.predict(x_train)
-    rf_predictions_test = rf_model.predict(x_test)
+
+    # Compute training and validation loss for each number of trees in the forest
+    training_mse = []
+    validation_mse = []
+    for n_trees in range(1, n_estimators + 1):
+        rf_model.set_params(n_estimators = n_trees)
+        rf_model.fit(x_train, y_train)
+        y_train_pred = rf_model.predict(x_train)
+        y_test_pred = rf_model.predict(x_test)
+        training_loss = mean_squared_error(y_train, y_train_pred)
+        validation_loss = mean_squared_error(y_test, y_test_pred)
+        training_mse.append(training_loss)
+        validation_mse.append(validation_loss)
+
+    # Plot the loss
+    plt.figure(figsize=(10, 8))
+    plt.plot(training_mse, label="train")
+    plt.plot(validation_mse, label="validation")
+    plt.title('Random Forest Loss Plot')
+    plt.xlabel('Number of Trees')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+    # Compute accuracy and predictions
     rf_accuracy_train = rf_model.score(x_train, y_train)
     rf_accuracy_test = rf_model.score(x_test, y_test)
+    rf_predictions_train = rf_model.predict(x_train)
+    rf_predictions_test = rf_model.predict(x_test)
+
     return rf_accuracy_train, rf_accuracy_test, rf_predictions_train, rf_predictions_test
 
 def train_svr(x_train, y_train, x_test, y_test):
@@ -136,23 +183,24 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     '''mlp_regressor = MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000)
     mlp_regressor.fit(x_train, y_train)'''
     mlp_regressor = MLPRegressor(activation="relu",
-                    max_iter=1000,
-                    solver="adam",
-                    random_state=2,
-                    early_stopping=True,
-                    warm_start=True)
+                                 max_iter=1000,
+                                 solver="adam",
+                                 random_state=2,
+                                 early_stopping=True,
+                                 warm_start=True)
     training_mse = []
     validation_mse = []
     for epoch in range(1,epochs):
         mlp_regressor.fit(x_train, y_train) 
-        Y_pred = mlp_regressor.predict(x_train)
-        curr_train_score = mean_squared_error(y_train, Y_pred) # training performances
-        Y_pred = mlp_regressor.predict(x_train) 
-        curr_valid_score = mean_squared_error(y_train, Y_pred) # validation performances
+        y_pred = mlp_regressor.predict(x_train)
+        curr_train_score = mean_squared_error(y_train, y_pred) # training performances
+        y_pred = mlp_regressor.predict(x_train)
+        curr_valid_score = mean_squared_error(y_train, y_pred) # validation performances
         training_mse.append(curr_train_score)                  # list of training perf to plot
         validation_mse.append(curr_valid_score)                # list of valid perf to plot
-    plt.plot(training_mse,label="train")
-    plt.plot(validation_mse,label="validation")
+    plt.figure(figsize=(10, 8))
+    plt.plot(training_mse, label="train")
+    plt.plot(validation_mse, label="validation")
     plt.title('MLP Regressor Loss Plot')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -161,7 +209,8 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     mlp_regressor_predictions_test = mlp_regressor.predict(x_test)
     mlp_regressor_score_train = mlp_regressor.score(x_train, y_train)
     mlp_regressor_score_test = mlp_regressor.score(x_test, y_test)
-    return mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train, mlp_regressor_predictions_test
+    return (mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train,
+            mlp_regressor_predictions_test)
 
 
 
