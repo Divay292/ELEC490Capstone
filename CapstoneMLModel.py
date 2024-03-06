@@ -13,11 +13,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import mean_squared_error
+import seaborn as sns
 import joblib
 
 epochs = 100
 
-
+# Function to load data from CSV files
 def load_data():
     df = pd.read_csv('ML_Model_Sleep_Data_modified.csv')
     df2 = pd.read_csv('ML_Model_Test_Data.csv')
@@ -32,8 +33,9 @@ def load_data():
     df2['Sleep Duration'] = df['Sleep Duration'].astype(int)'''
     return df, df2
 
-
+# Function to preprocess the loaded data
 def preprocess_data(df, df2):
+    # Remove features with low variance
     variance_threshold = VarianceThreshold()
     x_train = df.iloc[:, 5:12]
     y_train = df.iloc[:, 12:13]
@@ -41,27 +43,36 @@ def preprocess_data(df, df2):
     y_test = df2.iloc[:, 12:13]
     x_train = variance_threshold.fit_transform(x_train)
     x_test = variance_threshold.transform(x_test)
+
+    # Check for zero variance in target variable
     if (np.var(y_train) == 0).any() or (np.var(y_test) == 0).any():
         print("Error: Target variable has zero variance. Aborting.")
         return None, None, None, None
+
+    # Reshape target variables
     y_train = y_train.values.reshape(-1)
     y_test = y_test.values.reshape(-1)
+
+    # Feature selection using SelectKBest
     selector = SelectKBest(score_func=f_classif, k=6)
     x_train_selected = selector.fit_transform(x_train, y_train)
     x_test_selected = selector.transform(x_test)
+
+    # Feature scaling using StandardScaler
     scaler = StandardScaler()
     x_train_selected_scaled = scaler.fit_transform(x_train_selected)
     x_test_selected_scaled = scaler.transform(x_test_selected)
+
     print("Shapes - x_train: {}, y_train: {}, x_test: {}, y_test: {}".format(
         x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
     return x_train_selected_scaled, y_train, x_test_selected_scaled, y_test
 
-
+# Function to save model weights
 def save_weights(model, filename):
     joblib.dump(model, filename)
 
-
+# Function to modify dataframes based on model accuracy
 def modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_test, svm_accuracy_test):
     if lr_accuracy_test < 0.8 or dt_accuracy_test < 0.8 or rf_accuracy_test < 0.8 or svm_accuracy_test < 0.8:
         # Transfer the first line of test.csv to Sleep_health_and_lifestyle_dataset.csv
@@ -76,7 +87,7 @@ def modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_t
         df2.to_csv('test_modified.csv', index=False)
     return df, df2
 
-
+# Function to train linear regression model
 def train_linear_regression(x_train, y_train, x_test, y_test):
     lr_model = LinearRegression()
     lr_model.fit(x_train, y_train)
@@ -84,9 +95,26 @@ def train_linear_regression(x_train, y_train, x_test, y_test):
     lr_predictions_test = lr_model.predict(x_test)
     lr_accuracy_train = lr_model.score(x_train, y_train)
     lr_accuracy_test = lr_model.score(x_test, y_test)
-    return lr_accuracy_train, lr_accuracy_test, lr_predictions_test
+    lr_residuals_test = lr_predictions_test - y_test
 
+    # Calculate Mean Squared Error for training set
+    train_errors = []
+    for i in range(len(x_train)):
+        y_train_pred = lr_model.predict(x_train[:i+1])
+        training_loss = mean_squared_error(y_train[:i+1], y_train_pred)
+        train_errors.append(training_loss)
+    # Plot the loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(np.arange(1, len(x_train)+1), train_errors)
+    plt.title('Linear Regression Loss Plot')
+    plt.xlabel('Number of Training Samples')
+    plt.ylabel('Loss')
+    plt.legend(['train'])
+    plt.show()
 
+    return lr_residuals_test, lr_accuracy_train, lr_accuracy_test, lr_predictions_test
+
+# Function to train decision tree model
 def train_decision_tree(df, x_train, y_train, x_test, y_test, max_depth=6, min_samples_leaf=4,
                         min_samples_split=4):
     dt_model = DecisionTreeRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
@@ -122,10 +150,11 @@ def train_decision_tree(df, x_train, y_train, x_test, y_test, max_depth=6, min_s
     dt_accuracy_test = dt_model.score(x_test, y_test)
     dt_predictions_train = dt_model.predict(x_train)
     dt_predictions_test = dt_model.predict(x_test)
+    dt_residuals_test = dt_predictions_test - y_test
 
-    return dt_accuracy_train, dt_accuracy_test, dt_predictions_train, dt_predictions_test
+    return dt_residuals_test, dt_accuracy_train, dt_accuracy_test, dt_predictions_train, dt_predictions_test
 
-
+# Function to train random forest model
 def train_random_forest(df, x_train, y_train, x_test, y_test, max_depth=5, min_samples_leaf=1,
                         min_samples_split=2, n_estimators=50):
 
@@ -161,9 +190,11 @@ def train_random_forest(df, x_train, y_train, x_test, y_test, max_depth=5, min_s
     rf_accuracy_test = rf_model.score(x_test, y_test)
     rf_predictions_train = rf_model.predict(x_train)
     rf_predictions_test = rf_model.predict(x_test)
+    rf_residuals_test = rf_predictions_test - y_test
 
-    return rf_accuracy_train, rf_accuracy_test, rf_predictions_train, rf_predictions_test
+    return rf_residuals_test, rf_accuracy_train, rf_accuracy_test, rf_predictions_train, rf_predictions_test
 
+# Function to train support vector regression model
 def train_svr(x_train, y_train, x_test, y_test):
     svm_model = SVR()
     svm_model.fit(x_train, y_train)
@@ -171,9 +202,11 @@ def train_svr(x_train, y_train, x_test, y_test):
     svm_predictions_test = svm_model.predict(x_test)
     svm_accuracy_train = svm_model.score(x_train, y_train)
     svm_accuracy_test = svm_model.score(x_test, y_test)
-    return svm_accuracy_train, svm_accuracy_test, svm_predictions_train, svm_predictions_test
+    svm_residuals_test = svm_predictions_test - y_test
 
+    return svm_residuals_test, svm_accuracy_train, svm_accuracy_test, svm_predictions_train, svm_predictions_test
 
+# Function to train MLP regressor model
 def train_mlp_regressor(x_train, y_train, x_test, y_test):
     mlp_regressor = MLPRegressor(activation="relu",
                                  max_iter=500,
@@ -192,7 +225,7 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     plt.title('MLP Regressor Loss Curve')
     plt.xlabel('Iterations')
     plt.ylabel('Loss')
-    plt.legend(['Training Loss'])
+    plt.legend(['train'])
 
     plt.show()
     '''for epoch in range(1,epochs):
@@ -214,10 +247,12 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     mlp_regressor_predictions_test = mlp_regressor.predict(x_test)
     mlp_regressor_score_train = mlp_regressor.score(x_train, y_train)
     mlp_regressor_score_test = mlp_regressor.score(x_test, y_test)
-    return (mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train,
+    mlp_regressor_residuals_test = mlp_regressor_predictions_test - y_test
+
+    return (mlp_regressor_residuals_test, mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train,
             mlp_regressor_predictions_test)
 
-
+# Main function to execute the workflow
 def main():
     df, df2 = load_data()
     x_train, y_train, x_test, y_test = preprocess_data(df, df2)
@@ -234,12 +269,14 @@ def main():
         print("Error: Infinite values found in data. Aborting.")
         return
 
-    lr_accuracy_train, lr_accuracy_test, lr_predictions_test = train_linear_regression(x_train, y_train, x_test, y_test)
-    dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test = train_decision_tree(df, x_train, y_train, x_test, y_test)
-    rf_accuracy_train, rf_accuracy_test, rf_loss_history, rf_predictions_test = train_random_forest(df, x_train, y_train, x_test, y_test)
-    svm_accuracy_train, svm_accuracy_test, svm_loss_history, svm_predictions_test = train_svr(x_train, y_train, x_test, y_test)
-    mlp_regressor_score_train, mlp_regressor_score_test, mlp_loss_history, mlp_regressor_predictions_test = train_mlp_regressor(x_train, y_train, x_test, y_test)
+   # Train models and obtain metrics
+    lr_residuals_test, lr_accuracy_train, lr_accuracy_test, lr_predictions_test = train_linear_regression(x_train, y_train, x_test, y_test)
+    dt_residuals_test, dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test = train_decision_tree(df, x_train, y_train, x_test, y_test)
+    rf_residuals_test, rf_accuracy_train, rf_accuracy_test, rf_loss_history, rf_predictions_test = train_random_forest(df, x_train, y_train, x_test, y_test)
+    svm_residuals_test, svm_accuracy_train, svm_accuracy_test, svm_loss_history, svm_predictions_test = train_svr(x_train, y_train, x_test, y_test)
+    mlp_regressor_residuals_test, mlp_regressor_score_train, mlp_regressor_score_test, mlp_loss_history, mlp_regressor_predictions_test = train_mlp_regressor(x_train, y_train, x_test, y_test)
 
+    # Print out model accuracies
     print("Linear Regression Training Accuracy: {:.4f}".format(lr_accuracy_train))
     print("Linear Regression Test Accuracy: {:.4f}".format(lr_accuracy_test))
     print("Decision Tree Training Accuracy: {:.4f}".format(dt_accuracy_train))
@@ -251,15 +288,14 @@ def main():
     print("MLP Regressor Training Score: {:.4f}".format(mlp_regressor_score_train))
     print("MLP Regressor Test Score: {:.4f}".format(mlp_regressor_score_test))
     
-    # Plotting test values
+    # Plotting test values - Predicted Test vs Actual Test
     plt.figure(figsize=(10, 8))
-    # plt.scatter(y_test, lr_predictions_test, color='blue', label='Linear Regression')
+    plt.scatter(y_test, lr_predictions_test, color='blue', label='Linear Regression')
     plt.scatter(y_test, dt_predictions_test, color='green', label='Decision Tree')
     plt.scatter(y_test, rf_predictions_test, color='red', label='Random Forest')
-    # plt.scatter(y_test, svm_predictions_test, color='orange', label='SVM')
+    plt.scatter(y_test, svm_predictions_test, color='orange', label='SVM')
     plt.scatter(y_test, mlp_regressor_predictions_test, color='purple', label='MLP Regressor')
     plt.plot(y_test, y_test, color='black', linestyle='--', linewidth=0.5)
-
     plt.title('Predicted Test Value vs Actual Test Value')
     plt.xlabel('Actual Test Value')
     plt.ylabel('Predicted Test Value')
@@ -267,6 +303,77 @@ def main():
     plt.grid(True)
     plt.show()
 
+    # Plotting test value residuals plots and distribution of residuals- Predicted Test vs Actual Test
+    plt.figure(figsize=(10, 8))
+    plt.plot(y_test, lr_residuals_test, color='blue')
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+    plt.title('Linear Regression Residuals Plot')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Residuals')
+    plt.show()
+
+    plt.figure(figsize=(12, 10))
+    plt.subplot(3, 2, 1)
+    sns.histplot(lr_residuals_test, color='blue', kde=True)
+    plt.title('Linear Regression Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
+    plt.figure(figsize=(10, 8))
+    plt.plot(y_test, dt_residuals_test, color='green')
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+    plt.title('Decision Tree Residuals Plot')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Residuals')
+    plt.show()
+
+    plt.subplot(3, 2, 2)
+    sns.histplot(dt_residuals_test, color='green', kde=True)
+    plt.title('Decision Tree Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
+    plt.figure(figsize=(10, 8))
+    plt.plot(y_test, rf_residuals_test, color='red')
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+    plt.title('Random Forest Residuals Plot')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Residuals')
+    plt.show()
+
+    plt.subplot(3, 2, 3)
+    sns.histplot(rf_residuals_test, color='red', kde=True)
+    plt.title('Random Forest Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
+    plt.figure(figsize=(10, 8))
+    plt.plot(y_test, svm_residuals_test, color='orange')
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+    plt.title('SVM Residuals Plot')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Residuals')
+    plt.show()
+
+    plt.subplot(3, 2, 4)
+    sns.histplot(svm_residuals_test, color='orange', kde=True)
+    plt.title('SVM Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
+    plt.figure(figsize=(10, 8))
+    plt.plot(y_test, mlp_regressor_residuals_test, color='purple')
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+    plt.title('MLP Regressor Residuals Plot')
+    plt.xlabel('Actual Values')
+    plt.ylabel('Residuals')
+    plt.show()
+
+    plt.subplot(3, 2, 5)
+    sns.histplot(mlp_regressor_residuals_test, color='purple', kde=True)
+    plt.title('MLP Regressor Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
 
 if __name__ == "__main__":
     main()
