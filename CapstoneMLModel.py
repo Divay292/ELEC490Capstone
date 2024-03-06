@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import mean_squared_error
+import seaborn as sns
 import joblib
 
 epochs = 100
@@ -302,7 +303,7 @@ def main():
     plt.grid(True)
     plt.show()
 
-    # Plotting test value residuals- Predicted Test vs Actual Test
+    # Plotting test value residuals plots and distribution of residuals- Predicted Test vs Actual Test
     plt.figure(figsize=(10, 8))
     plt.plot(y_test, lr_residuals_test, color='blue')
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
@@ -310,6 +311,13 @@ def main():
     plt.xlabel('Actual Values')
     plt.ylabel('Residuals')
     plt.show()
+
+    plt.figure(figsize=(12, 10))
+    plt.subplot(3, 2, 1)
+    sns.histplot(lr_residuals_test, color='blue', kde=True)
+    plt.title('Linear Regression Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
 
     plt.figure(figsize=(10, 8))
     plt.plot(y_test, dt_residuals_test, color='green')
@@ -319,6 +327,12 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.subplot(3, 2, 2)
+    sns.histplot(dt_residuals_test, color='green', kde=True)
+    plt.title('Decision Tree Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
     plt.figure(figsize=(10, 8))
     plt.plot(y_test, rf_residuals_test, color='red')
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
@@ -327,13 +341,25 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.subplot(3, 2, 3)
+    sns.histplot(rf_residuals_test, color='red', kde=True)
+    plt.title('Random Forest Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+
     plt.figure(figsize=(10, 8))
-    plt.plot(y_test, svm_residuals_test, color='purple')
+    plt.plot(y_test, svm_residuals_test, color='orange')
     plt.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
     plt.title('SVM Residuals Plot')
     plt.xlabel('Actual Values')
     plt.ylabel('Residuals')
     plt.show()
+
+    plt.subplot(3, 2, 4)
+    sns.histplot(svm_residuals_test, color='orange', kde=True)
+    plt.title('SVM Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
 
     plt.figure(figsize=(10, 8))
     plt.plot(y_test, mlp_regressor_residuals_test, color='purple')
@@ -343,6 +369,11 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.subplot(3, 2, 5)
+    sns.histplot(mlp_regressor_residuals_test, color='purple', kde=True)
+    plt.title('MLP Regressor Residuals Distribution')
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
 
 if __name__ == "__main__":
     main()
