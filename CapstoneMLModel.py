@@ -5,24 +5,17 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, IsolationForest
-from sklearn.svm import SVR, OneClassSVM
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.ensemble import VotingRegressor, StackingRegressor
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from sklearn.naive_bayes import GaussianNB
-from sklearn.feature_selection import SelectKBest, f_classif, RFE
+from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import SGDRegressor
 import joblib
 
-epochs = 200
+epochs = 100
 
 
 def load_data():
@@ -94,8 +87,8 @@ def train_linear_regression(x_train, y_train, x_test, y_test):
     return lr_accuracy_train, lr_accuracy_test, lr_predictions_test
 
 
-def train_decision_tree(x_train, y_train, x_test, y_test, max_depth=8, min_samples_leaf=4,
-                        min_samples_split=5):
+def train_decision_tree(df, x_train, y_train, x_test, y_test, max_depth=6, min_samples_leaf=4,
+                        min_samples_split=4):
     dt_model = DecisionTreeRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
                                      min_samples_split=min_samples_split)
     dt_model.fit(x_train, y_train)
@@ -117,7 +110,7 @@ def train_decision_tree(x_train, y_train, x_test, y_test, max_depth=8, min_sampl
     # Plot the loss
     plt.figure(figsize=(10, 8))
     plt.plot(training_mse, label="train")
-    plt.plot(validation_mse, label="validation")
+    # plt.plot(validation_mse, label="validation")
     plt.title('Decision Tree Loss Plot')
     plt.xlabel('Tree Depth')
     plt.ylabel('Loss')
@@ -133,8 +126,9 @@ def train_decision_tree(x_train, y_train, x_test, y_test, max_depth=8, min_sampl
     return dt_accuracy_train, dt_accuracy_test, dt_predictions_train, dt_predictions_test
 
 
-def train_random_forest(x_train, y_train, x_test, y_test, max_depth=20, min_samples_leaf=20,
-                        min_samples_split=20, n_estimators=100):
+def train_random_forest(df, x_train, y_train, x_test, y_test, max_depth=5, min_samples_leaf=1,
+                        min_samples_split=2, n_estimators=50):
+
     rf_model = RandomForestRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
                                      min_samples_split=min_samples_split, n_estimators=n_estimators)
     rf_model.fit(x_train, y_train)
@@ -155,7 +149,7 @@ def train_random_forest(x_train, y_train, x_test, y_test, max_depth=20, min_samp
     # Plot the loss
     plt.figure(figsize=(10, 8))
     plt.plot(training_mse, label="train")
-    plt.plot(validation_mse, label="validation")
+    # plt.plot(validation_mse, label="validation")
     plt.title('Random Forest Loss Plot')
     plt.xlabel('Number of Trees')
     plt.ylabel('Loss')
@@ -179,18 +173,29 @@ def train_svr(x_train, y_train, x_test, y_test):
     svm_accuracy_test = svm_model.score(x_test, y_test)
     return svm_accuracy_train, svm_accuracy_test, svm_predictions_train, svm_predictions_test
 
+
 def train_mlp_regressor(x_train, y_train, x_test, y_test):
-    '''mlp_regressor = MLPRegressor(hidden_layer_sizes=(100,), max_iter=1000)
-    mlp_regressor.fit(x_train, y_train)'''
     mlp_regressor = MLPRegressor(activation="relu",
-                                 max_iter=1000,
+                                 max_iter=500,
                                  solver="adam",
                                  random_state=2,
                                  early_stopping=True,
+                                 n_iter_no_change=10,
                                  warm_start=True)
     training_mse = []
     validation_mse = []
-    for epoch in range(1,epochs):
+    mlp_regressor.fit(x_train, y_train)
+    loss_df = pd.DataFrame(mlp_regressor.loss_curve_)
+    loss_df.plot()
+
+    # Customize the plot with labels
+    plt.title('MLP Regressor Loss Curve')
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss')
+    plt.legend(['Training Loss'])
+
+    plt.show()
+    '''for epoch in range(1,epochs):
         mlp_regressor.fit(x_train, y_train) 
         y_pred = mlp_regressor.predict(x_train)
         curr_train_score = mean_squared_error(y_train, y_pred) # training performances
@@ -204,14 +209,13 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     plt.title('MLP Regressor Loss Plot')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.legend()
+    plt.legend()'''
     mlp_regressor_predictions_train = mlp_regressor.predict(x_train)
     mlp_regressor_predictions_test = mlp_regressor.predict(x_test)
     mlp_regressor_score_train = mlp_regressor.score(x_train, y_train)
     mlp_regressor_score_test = mlp_regressor.score(x_test, y_test)
     return (mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train,
             mlp_regressor_predictions_test)
-
 
 
 def main():
@@ -230,13 +234,11 @@ def main():
         print("Error: Infinite values found in data. Aborting.")
         return
 
-
     lr_accuracy_train, lr_accuracy_test, lr_predictions_test = train_linear_regression(x_train, y_train, x_test, y_test)
-    dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test = train_decision_tree(x_train, y_train, x_test, y_test)
-    rf_accuracy_train, rf_accuracy_test, rf_loss_history, rf_predictions_test = train_random_forest(x_train, y_train, x_test, y_test)
+    dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test = train_decision_tree(df, x_train, y_train, x_test, y_test)
+    rf_accuracy_train, rf_accuracy_test, rf_loss_history, rf_predictions_test = train_random_forest(df, x_train, y_train, x_test, y_test)
     svm_accuracy_train, svm_accuracy_test, svm_loss_history, svm_predictions_test = train_svr(x_train, y_train, x_test, y_test)
     mlp_regressor_score_train, mlp_regressor_score_test, mlp_loss_history, mlp_regressor_predictions_test = train_mlp_regressor(x_train, y_train, x_test, y_test)
-
 
     print("Linear Regression Training Accuracy: {:.4f}".format(lr_accuracy_train))
     print("Linear Regression Test Accuracy: {:.4f}".format(lr_accuracy_test))
@@ -248,28 +250,15 @@ def main():
     print("SVM Test Accuracy: {:.4f}".format(svm_accuracy_test))
     print("MLP Regressor Training Score: {:.4f}".format(mlp_regressor_score_train))
     print("MLP Regressor Test Score: {:.4f}".format(mlp_regressor_score_test))
-
-    '''plt.figure(figsize=(10, 4))
-    plt.plot(lr_loss_history, label='Linear Regression')
-    plt.plot(dt_loss_history, label='Decision Tree')
-    plt.plot(rf_loss_history, label='Random Forest')
-    plt.plot(svm_loss_history, label='SVM')
-    plt.plot(mlp_loss_history, label='MLP Regressor')
-    plt.title('Training Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.grid(True)
-    plt.show()'''
     
     # Plotting test values
     plt.figure(figsize=(10, 8))
-    plt.scatter(y_test, lr_predictions_test, color='blue', label='Linear Regression')
+    # plt.scatter(y_test, lr_predictions_test, color='blue', label='Linear Regression')
     plt.scatter(y_test, dt_predictions_test, color='green', label='Decision Tree')
     plt.scatter(y_test, rf_predictions_test, color='red', label='Random Forest')
-    plt.scatter(y_test, svm_predictions_test, color='orange', label='SVM')
+    # plt.scatter(y_test, svm_predictions_test, color='orange', label='SVM')
     plt.scatter(y_test, mlp_regressor_predictions_test, color='purple', label='MLP Regressor')
-    plt.plot(y_test, y_test, color='black', linestyle='--', linewidth=0.5, label='y=x')
+    plt.plot(y_test, y_test, color='black', linestyle='--', linewidth=0.5)
 
     plt.title('Predicted Test Value vs Actual Test Value')
     plt.xlabel('Actual Test Value')
