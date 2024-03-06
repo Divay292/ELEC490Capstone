@@ -17,7 +17,7 @@ import joblib
 
 epochs = 100
 
-
+# Function to load data from CSV files
 def load_data():
     df = pd.read_csv('ML_Model_Sleep_Data_modified.csv')
     df2 = pd.read_csv('ML_Model_Test_Data.csv')
@@ -32,8 +32,9 @@ def load_data():
     df2['Sleep Duration'] = df['Sleep Duration'].astype(int)'''
     return df, df2
 
-
+# Function to preprocess the loaded data
 def preprocess_data(df, df2):
+    # Remove features with low variance
     variance_threshold = VarianceThreshold()
     x_train = df.iloc[:, 5:12]
     y_train = df.iloc[:, 12:13]
@@ -41,27 +42,36 @@ def preprocess_data(df, df2):
     y_test = df2.iloc[:, 12:13]
     x_train = variance_threshold.fit_transform(x_train)
     x_test = variance_threshold.transform(x_test)
+
+    # Check for zero variance in target variable
     if (np.var(y_train) == 0).any() or (np.var(y_test) == 0).any():
         print("Error: Target variable has zero variance. Aborting.")
         return None, None, None, None
+
+    # Reshape target variables
     y_train = y_train.values.reshape(-1)
     y_test = y_test.values.reshape(-1)
+
+    # Feature selection using SelectKBest
     selector = SelectKBest(score_func=f_classif, k=6)
     x_train_selected = selector.fit_transform(x_train, y_train)
     x_test_selected = selector.transform(x_test)
+
+    # Feature scaling using StandardScaler
     scaler = StandardScaler()
     x_train_selected_scaled = scaler.fit_transform(x_train_selected)
     x_test_selected_scaled = scaler.transform(x_test_selected)
+
     print("Shapes - x_train: {}, y_train: {}, x_test: {}, y_test: {}".format(
         x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
     return x_train_selected_scaled, y_train, x_test_selected_scaled, y_test
 
-
+# Function to save model weights
 def save_weights(model, filename):
     joblib.dump(model, filename)
 
-
+# Function to modify dataframes based on model accuracy
 def modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_test, svm_accuracy_test):
     if lr_accuracy_test < 0.8 or dt_accuracy_test < 0.8 or rf_accuracy_test < 0.8 or svm_accuracy_test < 0.8:
         # Transfer the first line of test.csv to Sleep_health_and_lifestyle_dataset.csv
@@ -76,7 +86,7 @@ def modify_dataframes(df, df2, lr_accuracy_test, dt_accuracy_test, rf_accuracy_t
         df2.to_csv('test_modified.csv', index=False)
     return df, df2
 
-
+# Function to train linear regression model
 def train_linear_regression(x_train, y_train, x_test, y_test):
     lr_model = LinearRegression()
     lr_model.fit(x_train, y_train)
@@ -86,7 +96,7 @@ def train_linear_regression(x_train, y_train, x_test, y_test):
     lr_accuracy_test = lr_model.score(x_test, y_test)
     return lr_accuracy_train, lr_accuracy_test, lr_predictions_test
 
-
+# Function to train decision tree model
 def train_decision_tree(df, x_train, y_train, x_test, y_test, max_depth=6, min_samples_leaf=4,
                         min_samples_split=4):
     dt_model = DecisionTreeRegressor(max_depth=max_depth, min_samples_leaf=min_samples_leaf,
@@ -125,7 +135,7 @@ def train_decision_tree(df, x_train, y_train, x_test, y_test, max_depth=6, min_s
 
     return dt_accuracy_train, dt_accuracy_test, dt_predictions_train, dt_predictions_test
 
-
+# Function to train random forest model
 def train_random_forest(df, x_train, y_train, x_test, y_test, max_depth=5, min_samples_leaf=1,
                         min_samples_split=2, n_estimators=50):
 
@@ -164,6 +174,7 @@ def train_random_forest(df, x_train, y_train, x_test, y_test, max_depth=5, min_s
 
     return rf_accuracy_train, rf_accuracy_test, rf_predictions_train, rf_predictions_test
 
+# Function to train support vector regression model
 def train_svr(x_train, y_train, x_test, y_test):
     svm_model = SVR()
     svm_model.fit(x_train, y_train)
@@ -173,7 +184,7 @@ def train_svr(x_train, y_train, x_test, y_test):
     svm_accuracy_test = svm_model.score(x_test, y_test)
     return svm_accuracy_train, svm_accuracy_test, svm_predictions_train, svm_predictions_test
 
-
+# Function to train MLP regressor model
 def train_mlp_regressor(x_train, y_train, x_test, y_test):
     mlp_regressor = MLPRegressor(activation="relu",
                                  max_iter=500,
@@ -217,7 +228,7 @@ def train_mlp_regressor(x_train, y_train, x_test, y_test):
     return (mlp_regressor_score_train, mlp_regressor_score_test, mlp_regressor_predictions_train,
             mlp_regressor_predictions_test)
 
-
+# Main function to execute the workflow
 def main():
     df, df2 = load_data()
     x_train, y_train, x_test, y_test = preprocess_data(df, df2)
@@ -234,12 +245,14 @@ def main():
         print("Error: Infinite values found in data. Aborting.")
         return
 
+   # Train models and obtain metrics
     lr_accuracy_train, lr_accuracy_test, lr_predictions_test = train_linear_regression(x_train, y_train, x_test, y_test)
     dt_accuracy_train, dt_accuracy_test, dt_loss_history, dt_predictions_test = train_decision_tree(df, x_train, y_train, x_test, y_test)
     rf_accuracy_train, rf_accuracy_test, rf_loss_history, rf_predictions_test = train_random_forest(df, x_train, y_train, x_test, y_test)
     svm_accuracy_train, svm_accuracy_test, svm_loss_history, svm_predictions_test = train_svr(x_train, y_train, x_test, y_test)
     mlp_regressor_score_train, mlp_regressor_score_test, mlp_loss_history, mlp_regressor_predictions_test = train_mlp_regressor(x_train, y_train, x_test, y_test)
 
+    # Print out model accuracies
     print("Linear Regression Training Accuracy: {:.4f}".format(lr_accuracy_train))
     print("Linear Regression Test Accuracy: {:.4f}".format(lr_accuracy_test))
     print("Decision Tree Training Accuracy: {:.4f}".format(dt_accuracy_train))
