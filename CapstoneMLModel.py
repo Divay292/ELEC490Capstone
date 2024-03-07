@@ -104,7 +104,7 @@ def train_linear_regression(x_train, y_train, x_test, y_test):
         training_loss = mean_squared_error(y_train[:i+1], y_train_pred)
         train_errors.append(training_loss)
     # Plot the loss
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 8))
     plt.plot(np.arange(1, len(x_train)+1), train_errors)
     plt.title('Linear Regression Loss Plot')
     plt.xlabel('Number of Training Samples')
@@ -327,6 +327,7 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.figure(figsize=(12, 10))
     plt.subplot(3, 2, 2)
     sns.histplot(dt_residuals_test, color='green', kde=True)
     plt.title('Decision Tree Residuals Distribution')
@@ -341,6 +342,7 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.figure(figsize=(12, 10))
     plt.subplot(3, 2, 3)
     sns.histplot(rf_residuals_test, color='red', kde=True)
     plt.title('Random Forest Residuals Distribution')
@@ -355,6 +357,7 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.figure(figsize=(12, 10))
     plt.subplot(3, 2, 4)
     sns.histplot(svm_residuals_test, color='orange', kde=True)
     plt.title('SVM Residuals Distribution')
@@ -369,11 +372,13 @@ def main():
     plt.ylabel('Residuals')
     plt.show()
 
+    plt.figure(figsize=(12, 10))
     plt.subplot(3, 2, 5)
     sns.histplot(mlp_regressor_residuals_test, color='purple', kde=True)
     plt.title('MLP Regressor Residuals Distribution')
     plt.xlabel('Residuals')
     plt.ylabel('Frequency')
+    plt.show()
 
 if __name__ == "__main__":
     main()
