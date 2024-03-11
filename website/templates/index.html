@@ -1,50 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<style>
-    .header{
-        text-align: center;
-        font-family: system-ui;
-
-        opacity: 0.8;
-        padding: 5px;
-    }
-
-    .body{
-        background: #7fa580;
-        opacity: 0.8;
-        width: 50%;
-        text-align: center;
-        margin-left: 450px;
-        margin-top: 100px;
-        padding: 15px;
-        font-family: system-ui;
-    }
-</style>
-
 <head>
     <meta charset="UTF-8">
-    <title>ELEC 390 Capstone</title>
-</head>
+    <title>ELEC 490 Capstone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0; /* Soft grey background */
+            font-family: 'Arial', sans-serif;
+        }
 
-<!Background Colour>
-<body style="background-color:#c6c9c7"></body>
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+            background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+        }
+
+        .header h1 {
+            color: #000; /* Dark grey color for the header text */
+            font-size: 2em; /* Larger font size for the header */
+        }
+
+        .body {
+            background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            width: 80%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+
+        .body img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px; /* Rounded corners for the image */
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Spacing between form elements */
+            margin-top: 20px; /* Space between image and form */
+        }
+
+        input[type="text"],
+        input[type="file"],
+        button {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 22px); /* Input width accounting for padding and border */
+        }
+
+        button {
+            background-color: #5cb85c; /* Green color */
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #4cae4c; /* Darker green on hover */
+        }
+
+        /* Responsive design */
+        @media (max-width: 640px) {
+            .body {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            .header h1 {
+                font-size: 1.5em; /* Slightly smaller font for small screens */
+            }
+        }
+
+        .page-title {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
 
 <div class="header">
-    <h1>ELEC 390: Sleep Monitoring System </h1>
+    <h1>ELEC 490: Sleep Quality Prediction through AI</h1>
 </div>
 
 <div class="body">
-    <h3><u>Upload Sleep Data</u></h3>
-    <img src="/static/src/System_Model.jpeg" alt="System Diagram" width="900" height="auto">
-    <br><br>
-    <label for="Sleep Data"></label><input type="file" id="Sleep Data" name="Data" accept=".text/csv">
-    <br><br>
-    <label for="Age"></label><input type="text" id="Age" name="Age" placeholder="Age">
-    <label for="Occupation"></label><input type="text" id="Occupation" name="Occupation" placeholder="Occupation">
-    <label for="Stress Level"></label><input type="text" id="Stress Level" name="Stress" placeholder="Stress Level">
-    <label for="BMI Category"></label><input type="text" id="BMI Category" name="BMI" placeholder="BMI Category">
-    <button type="button" id="Enter" name="Enter">Enter</button>
+    <div class="page-title">
+        <h3><u>Upload Sleep Data</u></h3>
+    </div>
+    <img src="{{ url_for('static', filename='src/System_Model.jpeg') }}" alt="Diagram of Sleep Monitoring System">
+    <form method="POST" action="/" class="form-container" enctype="multipart/form-data">
+        <label for="file-upload">Upload File (text/csv):</label>
+        <input type="file" id="file-upload" name="Data" accept=".csv, text/csv">
+        <label for="age">Enter Age:</label>
+        <input type="text" id="age" name="age" placeholder="Age">
+        <label for="occupation">Enter Occupation:</label>
+        <input type="text" id="occupation" name="occupation" placeholder="Occupation">
+        <label for="stress-level">Enter Stress Level:</label>
+        <input type="text" id="stress-level" name="stress_level" placeholder="Stress Level">
+        <label for="bmi-category">Enter BMI Category:</label>
+        <input type="text" id="bmi-category" name="bmi_category" placeholder="BMI Category">
+        <input type="submit" id="submit" value="Submit">
+    </form>
 </div>
 
+</body>
 </html>

@@ -1,9 +1,14 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, send_file
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['UPLOAD_FOLDER'] = 'uploads'
 db = SQLAlchemy(app)
+
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 class SleepData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,22 +24,42 @@ class SleepData(db.Model):
 @app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
+        file = request.files['Data']
         stress_level = request.form['stress_level']
         age = request.form['age']
         occupation = request.form['occupation']
         bmi_category = request.form['bmi_category']
-        new_participant = SleepData(stress_level=stress_level, age=age, occupation=occupation, bmi_category=bmi_category)
+
+        # Save file
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
+        # Create a new participant instance
+        new_participant = SleepData(
+            stress_level=stress_level, 
+            age=age, 
+            occupation=occupation, 
+            bmi_category=bmi_category
+        )
 
         try:
+            # Add the new participant to the database
             db.session.add(new_participant)
             db.session.commit()
-            return redirect('/')
+            return redirect(url_for('result'))
         except:
-            return 'errror storing data'
-        
+            return 'Error storing data'
+
     else:
-        participant = SleepData.query.order_by(SleepData.id)
-        return render_template('index.html', participant=participant)
+        participants = SleepData.query.order_by(SleepData.id).all()
+        return render_template('index.html', participants=participants)
+
+@app.route('/result', methods=['GET'])
+def result():
+    return render_template('result.html')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(port=8000, debug=True)
