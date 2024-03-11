@@ -1,0 +1,23 @@
+<html lang="en">
+<head>
+    <!-- ... -->
+</head>
+<body>
+    <div id="loading-screen" style="display: none;">Loading...</div>
+    <div id="content" style="display: none;">
+        <h1>Thank You!</h1>
+        <p>Your submission has been received.</p>
+        {% if graph_path %}
+            <img src="{{ url_for('static', filename=graph_path) }}" alt="Data Graph">
+        {% endif %}
+        <a href="/">Go Back Home</a>
+    </div>
+    <script>
+        document.getElementById('loading-screen').style.display = 'block';
+        setTimeout(function() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }, 3000); // 3000 milliseconds = 3 seconds
+    </script>
+</body>
+</html>
