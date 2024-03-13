@@ -1,6 +1,8 @@
 from flask import Flask, render_template, url_for, request, redirect, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 app = Flask(__name__)
@@ -9,6 +11,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 db = SQLAlchemy(app)
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['UPLOAD_FOLDER'] = '.'  # Current directory
 
 class SleepData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,7 +60,13 @@ def index():
 
 @app.route('/result', methods=['GET'])
 def result():
-    return render_template('result.html')
+    # file_path = os.path.join(app.config['uploads'], 'sleepScoreOutputs.txt')
+    with open("sleepScoreOutputs.txt", 'r') as file:
+        numbers = [float(line.strip()) for line in file.readlines()]
+        average = np.mean(numbers)
+    average = "{:.2f}".format(float(average))
+
+    return render_template('result.html', average=average)
 
 if __name__ == "__main__":
     with app.app_context():

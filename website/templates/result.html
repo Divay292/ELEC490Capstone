@@ -1,23 +1,86 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Received</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        #loading-screen {
+            display: block;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        #content { display: none; }
+        h1, h2 {
+            color: #0000c7;
+        }
+        .tips {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .tips h3 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #e7eff9;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: #4a90e2;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div id="loading-screen" style="display: none;">Loading...</div>
-    <div id="content" style="display: none;">
+    <div id="loading-screen">Loading...</div>
+    <div id="content">
         <h1>Thank You!</h1>
         <p>Your submission has been received.</p>
-        {% if graph_path %}
-            <img src="{{ url_for('static', filename=graph_path) }}" alt="Data Graph">
+
+        {% if average %}
+            <h2>Your predicted sleep score is: {{ average }}</h2>
         {% endif %}
+
+        <div class="tips">
+            <h3>Here's a few tips to improve your sleep score:</h3>
+            <ul>
+                <li>Stick to a sleep schedule, even on weekends.</li>
+                <li>Practice a relaxing bedtime ritual in order to manage heart rate before sleep.</li>
+                <li>A healthy BMI (b/w 18.5-24.5) can help improve sleep quality..</li>
+            </ul>
+        </div>
+        
         <a href="/">Go Back Home</a>
     </div>
     <script>
-        document.getElementById('loading-screen').style.display = 'block';
         setTimeout(function() {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('content').style.display = 'block';
-        }, 3000); // 3000 milliseconds = 3 seconds
+        }, 3000); // Delay for the content to show after 3 seconds
     </script>
 </body>
 </html>
