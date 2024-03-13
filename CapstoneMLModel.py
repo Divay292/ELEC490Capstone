@@ -287,6 +287,18 @@ def main():
     print("SVM Test Accuracy: {:.4f}".format(svm_accuracy_test))
     print("MLP Regressor Training Score: {:.4f}".format(mlp_regressor_score_train))
     print("MLP Regressor Test Score: {:.4f}".format(mlp_regressor_score_test))
+
+    # Write random forest predictions to a file named "outputs"
+    np.savetxt("sleepScoreOutputs", rf_predictions_test, fmt='%.2f')
+
+    # Write index vs rf_predictions_test graph to the outputs file
+    plt.figure(figsize=(10, 8))
+    plt.plot(rf_predictions_test)
+    plt.title('Sleep Scores')
+    plt.xlabel('Day')
+    plt.ylabel('Sleep Score')
+    plt.savefig('sleepScoreOutputs.png')
+    plt.close()
     
     # Plotting test values - Predicted Test vs Actual Test
     plt.figure(figsize=(10, 8))
@@ -379,6 +391,8 @@ def main():
     plt.xlabel('Residuals')
     plt.ylabel('Frequency')
     plt.show()
+
+
 
 if __name__ == "__main__":
     main()
